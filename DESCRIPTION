@@ -1,0 +1,15 @@
+Package: politicaltweets
+Type: Package
+Title: Classify political tweets
+Version: 0.1.0
+Authors@R: person("Hauke", "Licht", email = "hauke.licht@uzh.ch", role = c("aut", "cre"))
+Description: Functions to classsify tweets according to whether or not they are political
+    based on a pre-trained ensemble classifier.
+License: GLP-2
+Encoding: UTF-8
+LazyData: false
+Suggests: 
+    testthat
+RoxygenNote: 7.1.0
+Depends: 
+    R (>= 2.10)
