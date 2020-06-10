@@ -4,10 +4,9 @@
 
   if (!rlang::is_installed("laserize")) {
     note <- paste(
-
       paste("\nNote: It seems that the", sQuote("laserize"), "R package is not installed and setup on your system.")
-      , 'Run `remotes::install_github("haukelicht/laserize")` and `?laserize::setup_laser`'
-      , "in case you want to use the politicaltweets::embed_tweet_text()."
+      , 'Run `remotes::install_github("haukelicht/laserize")` and refer to `?laserize::setup_laser`'
+      , "in case you want to use the politicaltweets::create_tweet_text_representations()."
       , ""
       , sep = "\n"
     )

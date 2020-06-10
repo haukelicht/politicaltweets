@@ -51,3 +51,63 @@
 #' @note These are the naming and typing conventions of the \code{rtweet} package \url{https://rtweet.info/}.
 #'     For a full description of what these fields/columns record, see \url{https://developer.twitter.com/en/docs/tweets/data-dictionary/overview/intro-to-tweet-json}
 "tweets.df.prototype"
+
+#' First 300 principal components of LASER representations of tweets in labeled dataset
+#'
+#' \code{\link[stats]{prcomp}} object fitted to the LASER embedding representations
+#'     of tweet texts contained in the training and validation data used
+#'     to obtain the ensemble classifier distributed with
+#'     the \code{politicaltweets} package
+#'
+#' @format A \code{\link[stats]{prcomp}} object, which is a list with the following elements:
+#'     \describe{
+#'        \item{sdev}{standard deviations of the principal components}
+#'        \item{rotation}{a \code{matrix} of variable loadings. Row names "e0001", ..., "e1024"; column names "PC1", ..., "PC300"  }
+#'        \item{center}{\code{FALSE}, since no centering applied}
+#'        \item{scale}{\code{FALSE}, since no scaling applied}
+#'      }
+#'
+#' @examples
+#' \dontrun{
+#'  # create fake 'test' observation (1-row matrix)
+#'  X <- matrix(
+#'    rnorm(1024)
+#'    , nrow = 1
+#'    # column names must be "e0001", ..., "e1024"
+#'    , dimnames = list(c("test"), sprintf("e%04d", 1:1024))
+#'  )
+#'
+#'  # use precomp predict method to obtain PCs
+#'  predict(laser.embedding.prcomp, newdata = ndat)
+#' }
+"laser.embedding.prcomp"
+
+#' 300 independent components of LASER representations of tweets in labeled dataset
+#'
+#' \code{\link[fastICA]{fastICA}} object fitted to the LASER embedding representations
+#'     of tweet texts contained in the training and validation data used
+#'     to obtain the ensemble classifier distributed with
+#'     the \code{politicaltweets} package
+#'
+#' @format A \code{\link[fastICA]{fastICA}} object, which is a list with the following elements:
+#'     \describe{
+#'        \item{K}{The 1024x300 'pre-whitening' \code{matrix} projecting embeddings onto the first 300 principal components}
+#'        \item{W}{The 300x300 'un-mixing' \code{matrix} estimated from the original model input data}
+#'        \item{A}{The 300x1024 'mixing' \code{matrix} estimated from the original model input data}
+#'        \item{X.means}{a \code{double} vector with 1024 elements recording embedding vector means in the original model input data}
+#'        \item{runtime}{\code{difftime} object reporting the time (in seconds) whitening and un-mixing took}
+#'        \item{params}{a list mapping the parameter used when fitting \code{\link[fastICA]{fastICA}}}
+#'      }
+#'
+#' @examples \dontrun{
+#'  # create fake 'test' observation (1-row matrix)
+#'  X <- matrix(
+#'    rnorm(1024)
+#'    , nrow = 1
+#'    # column names must be "e0001", ..., "e1024"
+#'    , dimnames = list(c("test"), sprintf("e%04d", 1:1024))
+#'  )
+#'  #'  # obtain independent component representation of x
+#'  X %*% laser.embedding.icomp$K %*% laser.embedding.icomp$W
+#' }
+"laser.embedding.icomp"

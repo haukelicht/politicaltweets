@@ -7,6 +7,11 @@
 create_tweet_features(x, .req.columns.mapping = required.tweets.df.cols, ...)
 }
 \arguments{
+\item{x}{a \code{data.frame} \code{\link[data.table]{data.table}}, or \code{\link[tibble]{tibble}}
+recording tweets.
+For required column (naming and typing conventions) refer to \code{?\link{required.tweets.df.cols}}.
+For an example see \code{?\link{tweets.df.prototype}}.}
+
 \item{.req.columns.mapping}{a two-column \code{data.frame} mapping column names to
 (character vectors specifying) expected column classes.
 The first column must be named \code{colname} and have type character.
@@ -14,11 +19,6 @@ The second column must be a list-column of character vectors and named \code{acc
 (see \code{?\link{required.tweets.df.cols}}).}
 
 \item{...}{Additional arguments passed to \code{\link{compute_tweet_features}}.}
-
-\item{a}{\code{data.frame} \code{\link[data.table]{data.table}}, or \code{\link[tibble]{tibble}}
-recording tweets.
-For required column (naming and typing conventions) refer to \code{?\link{required.tweets.df.cols}}.
-For an example see \code{?\link{tweets.df.prototype}}.}
 }
 \value{
 A \code{\link[data.table]{data.table}}.
