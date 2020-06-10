@@ -9,6 +9,12 @@ str_detect_one_quote_pattern(x, pattern, .verbose = FALSE)
 \arguments{
 \item{x}{character vector}
 
+\item{pattern}{a list with elements
+"s" (unit-length character specifying regex to match quote start)
+, "e" (unit-length character specifying regex to match quote end)
+, and "min_words" unit-length integer specifying the min. No. words to count a match as a quote)
+See \code{\link{text.quote.patterns}}.}
+
 \item{.verbose}{logical. verbosity}
 }
 \value{

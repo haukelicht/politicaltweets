@@ -7,7 +7,9 @@ Description: Functions to classsify tweets according to whether or not they are 
     based on a pre-trained ensemble classifier.
 License: GLP-2
 Encoding: UTF-8
-LazyData: false
+LazyData: true
+Imports:
+    dplyr
 Suggests: 
     testthat
 RoxygenNote: 7.1.0
