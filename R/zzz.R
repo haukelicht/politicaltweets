@@ -1,3 +1,6 @@
+.onLoad <- function(libname, pkgname) {
+  options("politicaltweets.cache.path" = file.path(tryCatch(path.package("politicaltweets"), error = function(err) getwd()), "cache"))
+}
 
 .onAttach <- function(libname, pkgname) {
   startup_msg <- "\033[1mpoliticaltweets\033[22m: Classifying tweets according to whether or not they are “political” using a pre-trained ensemble model\n"
@@ -18,3 +21,7 @@
   packageStartupMessage(startup_msg)
 }
 
+.onUnload <- function(libname, pkgname) {
+  res <- lapply(list.files(getOption("politicaltweets.cache.path"), full.names = TRUE), file.remove)
+  .Options$politicaltweets.cache.path <- NULL
+}

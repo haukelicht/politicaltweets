@@ -9,10 +9,27 @@ License: GLP-2
 Encoding: UTF-8
 LazyData: true
 Imports:
-    dplyr
+    rlang,
+    stringi,
+    stringr,
+    dplyr,
+    tidyr,
+    purrr,
+    lubridate,
+    data.table,
+    memoise,
+    caret,
+    e1071,
+    MLmetrics,
+    ModelMetrics,
+    caretEnsemble
 Suggests: 
     testthat,
-    laserize
+    laserize,
+    glmnet,
+    kernlab,
+    ranger,
+    xgboost
 RoxygenNote: 7.1.0
 Depends: 
     R (>= 2.10)

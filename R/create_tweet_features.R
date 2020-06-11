@@ -28,7 +28,7 @@
 #' @import dplyr
 #' @import dtplyr
 #' @importFrom data.table as.data.table
-#' @importFrom lubridate as_date
+#' @importFrom lubridate as_date ymd
 #' @importFrom stringr str_count str_replace_all
 #' @importFrom purrr map map_int map2_int map_lgl discard
 #' @importFrom tidyr replace_na
@@ -39,10 +39,15 @@ compute_tweet_features <- function(
   , .hashtags.regexp = "(?<=\\.|^|\\s)(#\\w{1,139})(?=\\s|$|\\W)"
   , .url.regexp = "\\b(([a-z][\\w-]+:(/{1,3}|[a-z0-9%])|www\\d{0,3}[.]|[a-z0-9.\\-]+[.][a-z]{2,4}/)([^\\s()<>]+|\\(([^\\s()<>]+|(\\([^\\s()<>]+\\)))*\\))+(\\(([^\\s()<>]+|(\\([^\\s()<>]+\\)))*\\)|[^\\s`!()\\[\\]{};:\\'\\\".,<>?«»“”‘’]))"
 ) {
+
+  has_n_judgments <- "n_judgments" %in% names(x)
+  has_judgment_entropy <- "judgment_entropy" %in% names(x)
+
   if (.as.data.table)
     require(dplyr)
   preprep <- ifelse(.as.data.table, lazy_dt, dplyr::as_tibble)
   postprep <- ifelse(.as.data.table, as.data.table, identity)
+
   x %>%
     # declare lazy data.table
     preprep() %>%
@@ -144,7 +149,13 @@ compute_tweet_features <- function(
       , char_ratio_quotes_no_urls = nchar_quotes/nchar_no_urls
       , char_ratio_quotes_dwidth = nchar_quotes/display_text_width
     ) %>%
-    mutate(nchar_display = display_text_width) %>%
+    mutate(
+      nchar_display = display_text_width
+      , tweet_type = factor(case_when(is_reply~"reply", is_quote~"quote", TRUE~"tweet"))
+      , nchar_limit = factor(date > ymd("2017-11-07"), c(F, T), c("140", "280"))
+      , n_judgments = ifelse(has_n_judgments, n_judgments, 1L)
+      , judgment_entropy = ifelse(has_judgment_entropy, judgment_entropy, 0.0)
+    ) %>%
     # keep the following columns
     select(
       # -- input columns -- #
@@ -153,6 +164,7 @@ compute_tweet_features <- function(
       # tweet metadata-level
       , date
       , lang
+      , tweet_type
       , is_reply
       , is_retweet
       , is_quote
@@ -169,6 +181,7 @@ compute_tweet_features <- function(
       , nchar
       , nchar_no_urls
       , nchar_display
+      , nchar_limit
       , n_mentions
       , n_hashtags
       , n_emojis
@@ -211,6 +224,9 @@ compute_tweet_features <- function(
       , char_ratio_punct_dwidth
       , char_ratio_space_dwidth
       , char_ratio_quotes_dwidth
+      # -- labeling indicators -- #
+      , n_judgments
+      , judgment_entropy
     ) %>%
     postprep()
 }
@@ -255,7 +271,7 @@ compute_tweet_features <- function(
 create_tweet_features <- function(
   x
   , .req.columns.mapping = required.tweets.df.cols
-  , ...
+  , .as.data.table = TRUE
 ) {
 
   stopifnot("`x` needs to be a/inherit from data.frame object." = inherits(x, "data.frame"))
@@ -277,6 +293,6 @@ create_tweet_features <- function(
     stop("The following columns of `x` have wrong classes (correct classes in parantheses): ", col_msg(idxs_, .req.columns.mapping), call. = FALSE)
   }
 
-  compute_tweet_features(x)
+  compute_tweet_features(x, .as.data.table = .as.data.table)
 
 }

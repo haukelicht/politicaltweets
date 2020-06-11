@@ -1,3 +1,22 @@
+#' Validate column mapping
+#'
+#' Function validates a column mapping
+#'
+#' @param col.map expects a valid "column mapping",
+#'     that is a data frame that
+#'     \enumerate{
+#'        \item{inherits from \code{data.frame}}
+#'        \item{has two columns named "colname" and "accepted_classes"}
+#'        \item{"colname" is type character and "accepted_classes" is a list column}
+#'        \item{each element of "accepted_classes" is a character vector}
+#'        \item{the \code{lengths} of "accepted_classes" is ≥ 1 for all its elements}
+#'     }
+#'
+#' @return a list with two elements
+#'     \describe{
+#'        \item{result}{a logical indicating whether \code{col.map} is a valid column mapping data frame}
+#'        \item{message}{a character vector, recording the reason why \code{col.map} is invalid if \code{result} is \code{FALSE}}
+#'     }
 validate_column_mapping <- function(col.map) {
   out <- list(result = FALSE, message = character())
   if (!inherits(col.map, "data.frame")) {
@@ -84,4 +103,37 @@ col_msg <- function(col.idxs, .col.map) {
   )
 }
 
+#' Check dependencies
+#'
+#' Check if package dependencies are all installed
+#'
+#' @return
+#' @importFrom rlang is_installed
+check_dependencies <- function(pkgs) {
 
+  installed <- vapply(pkgs$name, is_installed, NA)
+
+  if (any(!installed)) {
+    pkgs <- pkgs[which(!installed), ]
+
+    err_msg <- sprintf(
+      "%d packages required to classify tweets are not installed:\n%s"
+      , nrow(pkgs)
+      , paste(
+        sprintf(
+          " - %s (Please install via %s: `%s`)"
+          , dQuote(pkgs$name)
+          , pkgs$source
+          , ifelse(
+            pkgs$source == "CRAN"
+            , sprintf('install.pacakges("%s")', pkgs$name)
+            , sprintf('devtools::install_github("%s/%s")', pkgs$github_path, pkgs$name)
+          )
+        )
+        , collapse = "\n"
+      )
+    )
+
+    stop(err_msg, call. = FALSE)
+  }
+}

@@ -8,19 +8,37 @@ create_tweet_text_representations(
   x,
   .keep.embeddings = FALSE,
   .compute.pcs = TRUE,
-  .compute.ics = TRUE || .compute.pcs,
+  .compute.ics = TRUE,
   .req.columns.mapping = tibble::tribble(~colname, ~accepted_classes, "status_id",
-    c("character", "integer"), "text", c("character"), "lang", c("character"))
+    c("character", "integer"), "text", c("character"), "lang", c("character")),
+  ...
 )
 }
 \arguments{
-\item{x}{A}
+\item{x}{a \code{data.frame} \code{\link[data.table]{data.table}}, or \code{\link[tibble]{tibble}}
+recording tweets.
+For required column (naming and typing conventions) refer to \code{?\link{required.tweets.df.cols}}.
+For an example see \code{?\link{tweets.df.prototype}}.}
 
-\item{.keep.embeddings}{logical}
+\item{.keep.embeddings}{logical. Tweet text LASER embedding representations
+in return object?
+Default is \code{FALSE} because for each tweet a 1024 element long double vector is returned
+which may consume substantial amounts of working memory.}
 
-\item{.compute.pcs}{logical}
+\item{.compute.pcs}{logical. Project Tweet text LASER embedding onto pre-defined principal component space?
+Default is \code{TRUE}.}
 
-\item{.compute.ics}{logical}
+\item{.compute.ics}{logical. Project Tweet text LASER embedding onto pre-defined independent component space?
+Default is \code{TRUE}.}
+
+\item{.req.columns.mapping}{a two-column \code{data.frame} mapping column names to
+(character vectors specifying) expected column classes.
+The first column must be named \code{colname} and have type character.
+The second column must be a list-column of character vectors and named \code{accepted_classes}.
+Default maps column name "status_id" to classes "character" or "integer",
+ and "text" to "lang" to "character".}
+
+\item{...}{Additional arguments passed to \code{\link[laserize]{laserize}}}
 }
 \value{
 A list of four elements:

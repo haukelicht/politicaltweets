@@ -111,3 +111,23 @@
 #'  X %*% laser.embedding.icomp$K %*% laser.embedding.icomp$W
 #' }
 "laser.embedding.icomp"
+
+#' Constituent model (pre-trained base learners)
+#'
+#' List of constituent models trained with \code{\link[caretEnesemble]{caretList}}.
+#'
+#' @format A list of \code{\link[caret]{train}} objects.
+#'    \describe{
+#'     \item{glmnet}{a generalized linear model (GLM) with Elastic-Net regularization (\code{\link[glmnet]{glmnet}})}
+#'     \item{svmRadial}{a Support Vector Machine (SVM) with a radial kernel (\code{\link[kernlab]{ksvm}} with \code{kernel = "rbfdot"})}
+#'     \item{ranger}{a Random Forest (\code{\link[range]{ranger}})}
+#'     \item{xgbTree}{an eXtreme Gradient Boosting (XGBoost) machine (\code{\link[xgboost]{xgboost}} with \code{learner = "tree"})}
+#'    }
+#' @details
+#' Individual models were tuned to individually defined tuning grids using
+#'       5-times repeated 10-fold cross validation to 6292 labeled tweets.
+#'      "Best" models were selected among these candidates based on which
+#'       tuning parameter combinations yielded the highest F1 value.
+#'      These "best" candidates were then trained to the complete training data
+#'       in a 10-times repeated 10-fold cross validation scheme.
+"constituent.models"

@@ -12,7 +12,7 @@ test_that("compute_tweet_features()'s return structure and values are correct", 
 
   expect_true(all(vapply(res[grep("^(has|is)_", names(res))], is.logical, FALSE)))
   expect_true(all(vapply(res[grep("^n_|_count$", names(res))], is.integer, FALSE)))
-  expect_true(all(vapply(res[grep("^nchar($|_.+)", names(res))], is.integer, FALSE)))
+  expect_true(all(vapply(res[grep("^nchar($|_.+)", names(res))], typeof, NA_character_) == "integer"))
   expect_true(all(vapply(res[grep("^char_ratio", names(res))], is.double, FALSE)))
 })
 
