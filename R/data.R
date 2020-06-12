@@ -114,14 +114,14 @@
 
 #' Constituent model (pre-trained base learners)
 #'
-#' List of constituent models trained with \code{\link[caretEnesemble]{caretList}}.
+#' List of constituent models trained with \code{\link[caretEnsemble]{caretList}}.
 #'
 #' @format A list of \code{\link[caret]{train}} objects.
-#'    \describe{
-#'     \item{glmnet}{a generalized linear model (GLM) with Elastic-Net regularization (\code{\link[glmnet]{glmnet}})}
-#'     \item{svmRadial}{a Support Vector Machine (SVM) with a radial kernel (\code{\link[kernlab]{ksvm}} with \code{kernel = "rbfdot"})}
-#'     \item{ranger}{a Random Forest (\code{\link[range]{ranger}})}
-#'     \item{xgbTree}{an eXtreme Gradient Boosting (XGBoost) machine (\code{\link[xgboost]{xgboost}} with \code{learner = "tree"})}
+#'    \itemize{
+#'      \item{\code{glmnet}: a generalized linear model (GLM) with Elastic-Net regularization (\code{\link[glmnet]{glmnet}})}
+#'      \item{\code{svmRadial}: a Support Vector Machine (SVM) with a radial kernel (\code{\link[kernlab]{ksvm}} with \code{kernel = "rbfdot"})}
+#'      \item{\code{ranger}: a Random Forest (\code{\link[range]{ranger}})}
+#'      \item{\code{xgbTree}: an eXtreme Gradient Boosting (XGBoost) machine (\code{\link[xgboost]{xgboost}} with \code{learner = "tree"})}
 #'    }
 #' @details
 #' Individual models were tuned to individually defined tuning grids using
@@ -131,3 +131,24 @@
 #'      These "best" candidates were then trained to the complete training data
 #'       in a 10-times repeated 10-fold cross validation scheme.
 "constituent.models"
+
+#' Ensemble model (pre-trained ensemble classifier)
+#'
+#' Pre-trained ensemble classifier blended with \code{metric = "PR-AUC"}
+#'     \code{\link{constituent.models}} using \code{\link[caretEnsemble]{caretEnsemble}}.
+#'
+#' @format A 'caretEnsemble' object.
+#'    Element 'models' is identical to \code{\link{constituent.models}}
+#'    Element 'ens_model' is the ensemble classifier induced by PR-AUC-based blending.
+#'
+#' @details
+#' Individual models were tuned to individually defined tuning grids using
+#'       5-times repeated 10-fold cross validation to 6292 labeled tweets.
+#'      "Best" models were selected among these candidates based on which
+#'       tuning parameter combinations yielded the highest F1 value.
+#'      These "best" candidates were then trained to the complete training data
+#'       in a 10-times repeated 10-fold cross validation scheme.
+#'
+#'      The ensemble classifier was then obtained using \code{\link[caretEnsemble]{caretEnsemble}}
+#'       to blend them according to their test set performance (measured by PR-AUC) in these 100 resamples.
+"ensemble.model"

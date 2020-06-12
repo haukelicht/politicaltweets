@@ -116,6 +116,8 @@ create_tweet_text_representations <- function(
       , sep = "\n"
     )
     stop(err_msg, call. = FALSE)
+  } else {
+    suppressPackageStartupMessages(require("laserize", quietly = TRUE))
   }
 
   stopifnot(

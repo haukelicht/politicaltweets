@@ -2,19 +2,55 @@
 % Please edit documentation in R/classify_tweets.R
 \name{classify_tweets}
 \alias{classify_tweets}
+\alias{classify_tweets.default}
+\alias{classify_tweets.caretEnsemble}
+\alias{classify_tweets.caretList}
 \title{Classify tweets into political and non-political}
 \usage{
 classify_tweets(
   x,
-  blend.by = "PR-AUC",
-  classification.threshold = 0.5,
+  model = constituent.models,
+  threshold = 0.5,
+  ...,
   .predict.type = "prob",
   .add = FALSE,
-  .model.list = constituent.models,
+  .verbose = TRUE,
+  .debug = FALSE
+)
+
+\method{classify_tweets}{default}(
+  x,
+  model,
+  threshold = 0.5,
+  ...,
+  .predict.type = "prob",
+  .add = FALSE,
+  .verbose = TRUE,
+  .debug = FALSE
+)
+
+\method{classify_tweets}{caretEnsemble}(
+  x,
+  model,
+  threshold = 0.5,
+  ...,
+  .predict.type = "prob",
+  .add = FALSE,
+  .verbose = TRUE,
+  .debug = FALSE
+)
+
+\method{classify_tweets}{caretList}(
+  x,
+  model = constituent.models,
+  threshold = 0.5,
+  blend.by = "PR-AUC",
   .train.ctrl = trainControl(method = "repeatedcv", number = 10, repeats = 10, search =
     "grid", returnData = FALSE, returnResamp = "none", savePredictions = "none",
     classProbs = TRUE, summaryFunction = superSumFun, allowParallel = TRUE),
   ...,
+  .predict.type = "prob",
+  .add = FALSE,
   .verbose = TRUE,
   .debug = FALSE,
   .cache.model = FALSE,
@@ -24,52 +60,86 @@ classify_tweets(
 \arguments{
 \item{x}{a data frame object of tweet features/predictor variables}
 
-\item{blend.by}{a unit-length character string determining the evaluation metric 
-based on which constituent models (base learners) should be blended into the 
-ensemble classifier (see section "Ensemble classifier")}
+\item{model}{Either
+\itemize{
+   \item{a 'caretEnsemble' object (created with \code{\link[caretEnsemble]{caretEnsemble}}), or}
+   \item{a 'caretList' object, (i.e., a list of \code{\link[caret]{train}}
+ objects obtained with \code{\link[caretEnsemble]{caretList}}).}
+}
+Defaults to the 'caretList' object \code{\link{constituent.models}}.
+See section "Using \code{classify_tweets} when \code{model} is a 'caretList' object" for details.}
 
-\item{classification.threshold}{a unit-length double vector in (0, 1), 
-specifying the (predicted) probability threshold used to classify samples 
+\item{threshold}{a unit-length double vector in (0, 1),
+specifying the (predicted) probability threshold used to classify samples
 as positive (i.e., "political") instances.}
 
-\item{.predict.type}{a unit-length character string, 
-either "prob" (obtain predicted probabilities) or  
+\item{...}{Additional arguments passed to specific method and \code{\link[caretEnsemble]{predict}}.}
+
+\item{.predict.type}{a unit-length character string,
+either "prob" (obtain predicted probabilities, the default) or
 or "raw" (obtain predicted classes)}
 
 \item{.add}{logical: Column-bind (add) predictions to \code{x} before returning? Default is \code{FALSE}.}
 
-\item{.model.list}{a list of \code{\link[caret]{train}} objects obtained with \code{\link[caretEnsemble]{caretList}}.
-Defaults to \code{\link{constituent.models}}
-See section "Constituent models" for details.}
+\item{.verbose}{logical. Print messages to console informing about what the function is doing.}
+
+\item{.debug}{logical. Defaults to \code{FALSE}. If \code{TRUE} a message will be printed to the console if
+predicting new samples classes fails that informs about the source of the error.}
+
+\item{blend.by}{a unit-length character string determining the evaluation metric
+based on which constituent models (base learners) should be blended into the
+ensemble classifier (see section "Ensemble classifier")}
 
 \item{.train.ctrl}{a list object created by calling \code{\link[caret]{trainControl}}.
 Make sure that the summary function you specify when setting up training controls
  (argument \code{summaryFunction} of \code{\link[caret]{trainControl}})
  returns the evaluation metric used to blend models, i.e., \code{blend.by}.}
 
-\item{...}{Additional arguments passed to \code{\link[caretEnsemble]{predict}}.}
-
-\item{.verbose}{logical. Print messages to console infroming about what the function is doing.}
-
-\item{.debug}{logical. Defaults to \code{FALSE}. If \code{TRUE} a message will be printed to the console if 
-predicting new samples classes fails that informs about the source of the error.}
-
-\item{.cache.model}{logical. Cache ensemble classifiers 
-obtained from \code{.model.list} using \code{blend.by}.
+\item{.cache.model}{logical. Cache ensemble classifiers
+obtained from \code{model} using \code{blend.by}.
 Default is \code{FALSE}.}
 
 \item{.cache.path}{unit-length character, specifying where to write cached ensemble classifiers
 if \code{.cache.model = TRUE}.
 Default is "cache" in package directory in file system (see \code{getOption("politicaltweets.cache.path")}).}
 }
-\description{
-Function takes a data frame of tweet features as input, and obtains a prediction for each sample 
-    using a pre-trained ensemble classifier
+\value{
+A data frame of predictions.
 }
-\section{Constituent models (pre-trained base learners)}{
+\description{
+Function takes a data frame of tweet features as input,
+    and obtains a prediction for each sample using an ensemble classifier.
+}
+\details{
+\code{classify_tweets} can handle two types of model input:
+    \enumerate{
+         \item{Lists of pre-trained base learner models:
+             This is the default behavior if the input to argument \code{model}
+             is a 'caretList' object (i.e., a list of pre-trained base learners).
+             In this case, the base learners are first "blended" into a greedy ensemble
+             classifier, and the resulting ensemble model is then used to classify
+             samples in \code{x}.
+         }
+         \item{Pre-trained ensemble classifiers: If the input to argument \code{model}
+             is a 'caretEnsemble' object, this ensemble model is directly used to classify
+             samples in \code{x}.
+         }
+    }
+}
+\section{Methods (by class)}{
+\itemize{
+\item \code{default}: Default method (when \code{model} is neither a 'caretList' or 'caretEnsemble' object)
+
+\item \code{caretEnsemble}: Method when \code{model} is a 'caretEnsemble' object
+(i.e., a pre-trained ensemble model)
+
+\item \code{caretList}: Method when \code{model} is a 'caretList' object (i.e., a list of pre-trained base learner models)
+}}
+
+\section{Using \code{classify_tweets} when \code{model} is a 'caretList' object}{
 
 
-   By default, four constituent models are used to create the ensemble classifier 
+   By default, four constituent models are used to create the ensemble classifier
    (see \code{?\link{constituent.models}}):
    \itemize{
      \item{\code{glmnet}: a generalized linear model (GLM) with Elastic-Net regularization (\code{\link[glmnet]{glmnet}})}
@@ -77,15 +147,11 @@ Function takes a data frame of tweet features as input, and obtains a prediction
      \item{\code{ranger}: a Random Forest (\code{\link[range]{ranger}})}
      \item{\code{xgbTree}: an eXtreme Gradient Boosting (XGBoost) machine (\code{\link[xgboost]{xgboost}} with \code{learner = "tree"})}
    }
-}
-
-\section{The ensemble classifier}{
-
 
     The ensemble classifier is obtain by "blending" constituent models using a generalized linear model (GLM)
-    This is done by a call to the \code{\link[caretEnsemble]{caretEnsemble}} function 
+    This is done by a call to the \code{\link[caretEnsemble]{caretEnsemble}} function
      (see \code{vignette("caretEnsemble-intro", package = "caretEnsemble")}).
-    
+
     The \code{blend.by} determines which evaluation metric is used to "blend" constituent models.
     It is passed to the \code{metric} argument when calling \code{caretEnsemble}, which, in turn,
      forwards \code{metric} to \code{\link[caret]{train}} when training the GLM with \code{method = "glm"}.
@@ -93,18 +159,18 @@ Function takes a data frame of tweet features as input, and obtains a prediction
 
 \section{Classifying samples in \code{x}}{
 
- 
-    To classify samples in \code{x}, the ensemble model is passed to 
+
+    To classify samples in \code{x}, the ensemble model is passed to
      the \code{object} argument when calling \code{caretEnsemble}'s \code{predict} method.
-    
-    By default  (\code{.predict.type = "prob"}), predicted probabilities for 
-     the "yes" (political) class are obtained, and a classification into 
-     "yes" and "no" is induced based on the \code{classification.threshold} (default is .5).
-    That is, all samples with a predicted probability ≥ \code{classification.threshold} are classified as "yes" instances.
-     
-    Alternatively, you can directly obtain an assignment into classes by 
-     setting \code{.predict.type = "raw"}. 
-    CAUTION: In the latter case, \code{classification.threshold} will have no effect, 
+
+    By default  (\code{.predict.type = "prob"}), predicted probabilities for
+     the "yes" (political) class are obtained, and a classification into
+     "yes" and "no" is induced based on the \code{threshold} (default is .5).
+    That is, all samples with a predicted probability ≥ \code{threshold} are classified as "yes" instances.
+
+    Alternatively, you can directly obtain an assignment into classes by
+     setting \code{.predict.type = "raw"}.
+    CAUTION: In the latter case, \code{threshold} will have no effect,
      and the default threshold of .5 is always used.
 }
 

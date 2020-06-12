@@ -6,18 +6,18 @@
 \title{Constituent model (pre-trained base learners)}
 \format{
 A list of \code{\link[caret]{train}} objects.
-   \describe{
-    \item{glmnet}{a generalized linear model (GLM) with Elastic-Net regularization (\code{\link[glmnet]{glmnet}})}
-    \item{svmRadial}{a Support Vector Machine (SVM) with a radial kernel (\code{\link[kernlab]{ksvm}} with \code{kernel = "rbfdot"})}
-    \item{ranger}{a Random Forest (\code{\link[range]{ranger}})}
-    \item{xgbTree}{an eXtreme Gradient Boosting (XGBoost) machine (\code{\link[xgboost]{xgboost}} with \code{learner = "tree"})}
+   \itemize{
+     \item{\code{glmnet}: a generalized linear model (GLM) with Elastic-Net regularization (\code{\link[glmnet]{glmnet}})}
+     \item{\code{svmRadial}: a Support Vector Machine (SVM) with a radial kernel (\code{\link[kernlab]{ksvm}} with \code{kernel = "rbfdot"})}
+     \item{\code{ranger}: a Random Forest (\code{\link[range]{ranger}})}
+     \item{\code{xgbTree}: an eXtreme Gradient Boosting (XGBoost) machine (\code{\link[xgboost]{xgboost}} with \code{learner = "tree"})}
    }
 }
 \usage{
 constituent.models
 }
 \description{
-List of constituent models trained with \code{\link[caretEnesemble]{caretList}}.
+List of constituent models trained with \code{\link[caretEnsemble]{caretList}}.
 }
 \details{
 Individual models were tuned to individually defined tuning grids using

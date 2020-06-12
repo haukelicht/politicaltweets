@@ -281,7 +281,7 @@ create_tweet_features <- function(
     stop("`.req.columns.mapping` has not the expected structure/format: ", tmp$message, call. = FALSE)
 
   if (length(idxs_ <- which(!.req.columns.mapping$colname %in% names(x))) > 0)
-    stop("The following columns are required but missing from `x`: ", col_msg(idxs_), call. = FALSE)
+    stop("The following columns are required but missing from `x`: ", col_msg(idxs_, .req.columns.mapping), call. = FALSE)
 
   col_class_check <- tryCatch(check_column_class(x, .req.columns.mapping), error = function(err) err)
 

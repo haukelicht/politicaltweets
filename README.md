@@ -37,7 +37,7 @@ glimpse(tweets.df.prototype)
 tfeats <- create_tweet_features(tweets.df.prototype, .as.data.table = FALSE)
 
 # step 3
-ttreps <- create_tweet_text_representations(tweets.df.prototype, .compute.pcs = FALSE, check.languages = FALSE)
+ttreps <- create_tweet_text_representations(tweets.df.prototype, .compute.pcs = FALSE)
 
 # step 4
 temp <- as_tibble(tfeats) %>%
@@ -52,12 +52,28 @@ cbind(temp[, c("text", "lang")], preds)
 
 ## Details
 
-**Importantly**, all functions exported by `politicaltweets` expect that data passed to 
+### Required format of `x`
+
+All functions exported by `politicaltweets` expect that data passed to 
 their arguments `x` conforms the naming and typing conventions of tweets data frames set by 
 the [`rtweet` package](https://rtweet.info/).
 
 A prototypical tweets data frame is distributed with the `politicaltweets` package, 
 see `?tweets.df.prototype`.
 (Moreover, `politicaltweets::required.tweets.df.cols` maps required columns to the accepted classes.)
+
+### Using `classify_tweets()` with a pre-trained ensemble classifier
+
+`classify_tweets()` can handle two types of model input:
+
+By default, `classify_tweets()` uses a list of four pre-trained models (see `?constituent.modles` for details) 
+"blends" them into an ensemble classifier using `blend.by = "PR-AUC"` (maximize the area under the precision-recall curve).
+
+More generally,  `classify_tweets()` can handle two types of model inputs: 
+
+1. *Lists of pre-trained base learner models*:  if the input to argument `model` is a 'caretList' object (i.e., a list of pre-trained base learners). In this case, the base learners are first "blended" into a greedy ensemble classifier, and the resulting ensemble model is then used to classify samples in `x`.
+2. *Pre-trained ensemble classifiers*: If the input to argument `model` is a 'caretEnsemble' object, this ensemble model is directly used to classify samples in `x`.
+
+Thus you can train o
 
 

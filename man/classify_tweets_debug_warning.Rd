@@ -4,7 +4,7 @@
 \alias{classify_tweets_debug_warning}
 \title{Raise \code{\link{classify_tweets}} debugging warning}
 \usage{
-classify_tweets_debug_warning(.x, .model.list)
+classify_tweets_debug_warning(.x, model)
 }
 \arguments{
 \item{.x}{input data frame}
