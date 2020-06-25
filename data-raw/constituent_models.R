@@ -1,4 +1,4 @@
-fp <- file.path(".", "..", "..", "data", "fits", "nonoise", "ensemble_model_list_10x10cv.RData")
+fp <- file.path(".", "..", "..", "data", "fits", "baseline", "ensemble_model_list_10x10cv.RData")
 if (file.exists(fp)) {
   constituent.models <- suppressWarnings(readRDS(fp))
 

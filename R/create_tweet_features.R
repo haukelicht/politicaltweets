@@ -153,8 +153,6 @@ compute_tweet_features <- function(
       nchar_display = display_text_width
       , tweet_type = factor(case_when(is_reply~"reply", is_quote~"quote", TRUE~"tweet"))
       , nchar_limit = factor(date > ymd("2017-11-07"), c(F, T), c("140", "280"))
-      , n_judgments = ifelse(has_n_judgments, n_judgments, 1L)
-      , judgment_entropy = ifelse(has_judgment_entropy, judgment_entropy, 0.0)
     ) %>%
     # keep the following columns
     select(
@@ -224,9 +222,6 @@ compute_tweet_features <- function(
       , char_ratio_punct_dwidth
       , char_ratio_space_dwidth
       , char_ratio_quotes_dwidth
-      # -- labeling indicators -- #
-      , n_judgments
-      , judgment_entropy
     ) %>%
     postprep()
 }
