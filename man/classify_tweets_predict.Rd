@@ -7,6 +7,7 @@
 classify_tweets_predict(
   model,
   x,
+  na.rm,
   threshold,
   .predict.type,
   .add,
@@ -19,6 +20,8 @@ classify_tweets_predict(
 \item{model}{an 'caretEnsemble' object}
 
 \item{x}{a 'data.frame' object (see \code{?\link{classify_tweets}})}
+
+\item{na.rm}{logical. list-wise remove rows with missings?}
 
 \item{threshold}{double in (0,1) (see \code{?\link{classify_tweets}})}
 

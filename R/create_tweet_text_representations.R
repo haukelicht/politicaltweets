@@ -180,5 +180,10 @@ create_tweet_text_representations <- function(
   if (!.keep.embeddings)
     out <- c(list(embeddings = NULL), out[-1])
 
+  if (any(is.na(x$text))) {
+    missings <- detect_missings(x[, "text"])
+    attr(out, "removed.rows") <- missings$removed
+    attr(out, "removed.rows.nas") <- missings$rows_na_map
+  }
   return(out)
 }

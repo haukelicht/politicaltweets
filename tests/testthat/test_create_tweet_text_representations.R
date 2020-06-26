@@ -1,7 +1,6 @@
-
 test_that("create_tweet_text_representations() fails if 'laserize' is not installed", {
   with_mock(
-    is_installed = function(...) FALSE, .env = "remotes"
+    is_installed = function(...) FALSE, .env = "rlang"
     , expect_error(create_tweet_text_representations(tweets.df.prototype), "not installed and setup")
   )
 })
@@ -74,12 +73,14 @@ test_that("create_tweet_text_representations() returns expected object with mock
 
   test <- rbind(tweets.df.prototype, tweets.df.prototype)
   test$text[2] <- NA_character_
-  res <- create_tweet_text_representations(
+  res <- suppressWarnings(
+    create_tweet_text_representations(
       x = test
       , .keep.embeddings = TRUE
       , .compute.pcs = TRUE
       , .compute.ics = TRUE
     )
+  )
   expect_type(res, "list")
   expect_length(res, 4)
   expect_identical(dim(res$embeddings), c(1L, 1024L))
@@ -110,7 +111,7 @@ test_that("create_tweet_text_representations() returns expected object", {
     expect_true(inherits(res$embeddings, "matrix"))
     expect_type(res$embeddings, "double")
     expect_identical(dim(res$embeddings), c(1L, 1024L))
-    expect_identical(rownames(res$embeddings), tweets.df.prototype$status_id[1])
+    # expect_identical(rownames(res$embeddings), "test")
     expect_identical(colnames(res$embeddings), sprintf("e%04d", 1:1024))
   }
 })

@@ -4,12 +4,12 @@
 \alias{classify_tweets_debug_warning}
 \title{Raise \code{\link{classify_tweets}} debugging warning}
 \usage{
-classify_tweets_debug_warning(.x, model)
+classify_tweets_debug_warning(.x, .predvars)
 }
 \arguments{
 \item{.x}{input data frame}
 
-\item{.ensemble}{\code{\link[caretEnsemble]{caretEnsemble}} object}
+\item{.predvars}{character vector of names of required preedictor variables.}
 }
 \value{
 none (raises warning invisibly)

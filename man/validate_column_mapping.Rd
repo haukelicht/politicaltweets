@@ -8,12 +8,13 @@ validate_column_mapping(col.map)
 }
 \arguments{
 \item{col.map}{expects a valid "column mapping",
-that is a data frame that
+that is a data frame-like object that
 \enumerate{
    \item{inherits from \code{data.frame}}
    \item{has two columns named "colname" and "accepted_types"}
    \item{"colname" is type character and "accepted_types" is a list column}
-   \item{each element of "accepted_types" is a character vector}
+   \item{has at least one row}
+   \item{each element of "accepted_types" is a complete (non-NA) character vector}
    \item{the \code{lengths} of "accepted_types" is ≥ 1 for all its elements}
 }}
 }

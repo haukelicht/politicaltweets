@@ -160,3 +160,120 @@ check_dependencies <- function(pkgs) {
     stop(err_msg, call. = FALSE)
   }
 }
+
+#' Get model(s) predictor variable/feature names
+#'
+#' Function returns names of predictor variable/features used to train \code{object}
+#'
+#' @param object a
+#'     \code{caret} "\link[caret]{train}",
+#'     \code{caretEnsemble} "\link[caretEnsemble]{caretList}",
+#'     \code{caretEnsemble} "\link[caretEnsemble]{caretStack}", or
+#'     \code{caretEnsemble} "\link[caretEnsemble]{caretEnsemble}" object.
+#' @param ... Additional arguments ignored
+#'
+#' @section Model lists, stacks and ensembles:
+#'     If \code{object} is a "caretList", "caretStack" or "caretEnsmeble",
+#'      \code{get_model_predvars} is called on each constituent models,
+#'      the returned vectors are concatenated,
+#'      and \code{unique} is applied to return the variables used in any model.
+#'
+#' @return a character vector of model(s) predictor variable/feature names.
+get_model_predvars <- function(object, ...){
+  UseMethod("get_model_predvars", object)
+}
+#' @describeIn get_model_predvars Default method, currently not implemented.
+get_model_predvars.default <- function(object, ...) {
+  stop("Method not implemented for objects of class", class(object))
+}
+#' @describeIn get_model_predvars Method when \code{object} is a 'train' object
+get_model_predvars.train <- function(object, ...) {
+  names(attr(object$terms, "dataClasses"))[-1]
+}
+#' @describeIn get_model_predvars Method when \code{object} is a 'caretList' object
+get_model_predvars.caretList <- function(object, ...) {
+  unique(unlist(lapply(object, get_model_predvars.train)))
+}
+#' @describeIn get_model_predvars Method when \code{object} is a 'caretStack' object
+get_model_predvars.caretStack <- function(object, ...) {
+  get_model_predvars.caretList(object$models)
+}
+#' @describeIn get_model_predvars Method when \code{object} is a 'caretEnsemble' object
+get_model_predvars.caretEnsemble <- function(object, ...) {
+  get_model_predvars.caretList(object$models)
+}
+
+
+
+
+#' Detect missings
+#'
+#' Function detects rows of for which any column is \code{NA}, \code{NaN} or (±) \code{Inf}.
+#'
+#' @param .x a \code{data.frame}
+#'
+#' @return A list with elements
+#'     \describe{
+#'       \item{removed}{
+#'         An integer vector of indexes of rows with any \code{NA}, \code{NaN} or (±) \code{Inf}
+#'         \code{NULL} if all rows are complete (all values non-missings).
+#'        }
+#'       \item{rows_na_map}{
+#'         \code{NULL}  if \code{removed} is \code{NULL}.
+#'         Otherwise, a named list (names correspond to \code{removed}).
+#'         Each list element is a list with elements "na", "nan" and "inf",
+#'         each a character vector of column names with
+#'         \code{NA}, \code{NaN} and (±) \code{Inf} values, respectively.
+#'       }
+#'     }
+detect_missings <- function(.x) {
+  # missing matrix
+  mm <- has_na <- is.na(.x)
+  # additional checks for numeric columns
+  num_cols <- which(vapply(.x, is.numeric, NA))
+  if (length(na.omit(num_cols)) > 0) {
+    has_nan <- matrix(apply(as.data.frame(.x[, num_cols]), 2, is.nan), nrow = nrow(.x))
+    has_inf <- matrix(apply(as.data.frame(.x[, num_cols]), 2, is.infinite), nrow = nrow(.x))
+    colnames(has_nan) <- colnames(has_inf) <- names(.x)[num_cols]
+
+    # determine any missings
+    mm[, num_cols] <- mm[, num_cols] | has_nan | has_inf
+    has_na[, num_cols] <- has_na[, num_cols] & !has_nan
+  } else {
+    mm <- has_na
+    has_nan <- has_inf <- has_na & FALSE
+  }
+
+  out <- list(removed = NULL, rows_na_map = NULL)
+  if (any(flags_ <- apply(mm, 1, any))) {
+    idxs_ <- which(flags_)
+    n_ <- length(idxs_)
+    warning(
+      paste(
+        n_, ifelse(n_ == 1, "row", "rows"), "of `x`",  ifelse(n_ == 1, "is", "are"), "incomplete."
+        , "Removed by listwise deletion."
+        , "Attribute 'removed.rows' lists removed rows' indexes;"
+        , "Attribute 'removed.rows.nas' maps removed rows' NA, NaN and Inf columns."
+      )
+      , immediate. = FALSE
+      , call. = FALSE
+    )
+
+    out$removed <- idxs_
+    out$rows_na_map <- setNames(
+      lapply(idxs_, function(i) {
+        ret <- list(
+          na = names(which(has_na[i,]))
+          , nan = names(which(has_nan[i,]))
+          , inf = names(which(has_inf[i,]))
+        )
+        ret[is.null(ret)] <- character()
+        return(ret)
+      })
+      , as.character(idxs_)
+    )
+
+  }
+
+  return(out)
+}

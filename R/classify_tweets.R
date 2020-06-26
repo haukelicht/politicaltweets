@@ -39,28 +39,13 @@ validate_train_ctrl_sum_fun <- function(fun, levs, metric) {
 #'
 #' Internal helper to \code{\link{classify_tweets}}
 #' @param .x input data frame
-#' @param .ensemble \code{\link[caretEnsemble]{caretEnsemble}} object
+#' @param .predvars character vector of names of required preedictor variables.
 #'
 #' @return none (raises warning invisibly)
-classify_tweets_debug_warning <- function(.x, model) {
+classify_tweets_debug_warning <- function(.x, .predvars) {
 
-  which_is <- function(x, what) which(vapply(x, function(.x, .w = what) any(.x %in% .w), FALSE))
-  d_classes <- lapply(.x, class)
-
-  d_ <- character()
-  for (p in names(fct_cols <- which_is(d_classes, "factor"))) d_ <- c(d_, p, paste0(p, levels(.x[[p]])))
-  for (p in names(lgl_cols <- which_is(d_classes, "logical"))) d_ <- c(d_, p, paste0(p, c("TRUE", "FALSE")))
-
-  if (length(tmp_ <- c(fct_cols, lgl_cols)) > 0) {
-    d_ <- c(d_, names(.x)[-c(fct_cols, lgl_cols)])
-  } else {
-    d_ <- c(d_, names(.x))
-  }
-
-  p_names <- Reduce(union, lapply(lapply(model$models, `[`, "coefnames"), `[`, 1))[[1]]
-
-  if (length(missing <- which(!p_names %in% d_)) > 0)
-    warning("`x` is missing the following predictors: ", paste("\n  -", dQuote(p_names[missing])), call. = FALSE)
+  if (length(missing_ <- which(!.predvars %in% names(.x))) > 0)
+    warning("`x` is missing the following predictors: ", paste("\n  -", dQuote(.predvars[missing_])), call. = FALSE)
 
   return(invisible())
 }
@@ -71,6 +56,7 @@ classify_tweets_debug_warning <- function(.x, model) {
 #'
 #' @param model an 'caretEnsemble' object
 #' @param x a 'data.frame' object (see \code{?\link{classify_tweets}})
+#' @param na.rm logical. list-wise remove rows with missings?
 #' @param threshold double in (0,1) (see \code{?\link{classify_tweets}})
 #' @param .predict.type "prob" or "raw" (see \code{?\link{classify_tweets}})
 #' @param .add logical (see \code{?\link{classify_tweets}})
@@ -82,7 +68,7 @@ classify_tweets_debug_warning <- function(.x, model) {
 #'
 #' @import caret
 #' @import caretEnsemble
-classify_tweets_predict <- function(model, x, threshold, .predict.type, .add, .debug, .verbose, ...) {
+classify_tweets_predict <- function(model, x, na.rm, threshold, .predict.type, .add, .debug, .verbose, ...) {
 
   # compute model weights
   wgts <- coef(model$ens_model$finalModel)[-1]
@@ -90,15 +76,13 @@ classify_tweets_predict <- function(model, x, threshold, .predict.type, .add, .d
 
   if (.verbose) message("Constituent models (weights): ", paste(sprintf("%s (%0.3f)", dQuote(names(wgts)), wgts), collapse = ", "))
 
-  # try prediction
-  try_pred <- tryCatch(predict(model, x[1, ], type = .predict.type, ...), error = function(err) err)
+  predvars <- get_model_predvars(model$models)
 
-  # if fails
-  if (inherits(try_pred, "error")) {
+  if (any(!predvars %in% names(x))) {
     # if in debug mode ...
     if (.debug){
-      classify_tweets_debug_warning(x, model)
-    } else if (grepl("^object .+ not found$", try_pred$message)) {
+      classify_tweets_debug_warning(x, predvars)
+    } else {
       # else, give suggestive warning message ...
       warning(
         paste(
@@ -109,9 +93,21 @@ classify_tweets_predict <- function(model, x, threshold, .predict.type, .add, .d
       )
     }
 
-    # stop
-    stop("Cannot predict outcome class for samples contained in `x`. Error message reads ", sQuote(try_pred$message), call. = FALSE)
+    stop("Cannot predict outcome class for samples contained in `x`. Required predictor variables missing.", call. = FALSE)
   }
+
+  if (na.rm) {
+    missings <- detect_missings(x[, predvars])
+    if (!is.null(missings$removed))
+      x <- x[-missings$removed, ]
+  }
+
+  # try prediction
+  try_pred <- tryCatch(predict(model, x[1, ], type = .predict.type, ...), error = function(err) err)
+
+  # if fails
+  if (inherits(try_pred, "error"))
+    stop("Cannot predict outcome class for samples contained in `x`. Error message reads ", sQuote(try_pred$message), call. = FALSE)
 
   # predict new samples'
   if (.verbose) message("Classifying ", nrow(x), " samples")
@@ -131,6 +127,11 @@ classify_tweets_predict <- function(model, x, threshold, .predict.type, .add, .d
 
   if (.add) {
     out <- cbind(out, x)
+  }
+
+  if (na.rm) {
+    attr(out, "removed.rows") <- missings$removed
+    attr(out, "removed.rows.nas") <- missings$rows_na_map
   }
 
   return(out)
@@ -167,8 +168,15 @@ classify_tweets_predict <- function(model, x, threshold, .predict.type, .add, .d
 #'        \item{a 'caretList' object, (i.e., a list of \code{\link[caret]{train}}
 #'      objects obtained with \code{\link[caretEnsemble]{caretList}}).}
 #'     }
-#'     Defaults to the 'caretList' object \code{\link{constituent.models}}.
+#'     Defaults to the 'caretEnsemble' object \code{\link{ensemble.model}}.
 #'     See section "Using \code{classify_tweets} when \code{model} is a 'caretList' object" for details.
+#'
+#' @param na.rm logical. List-wise remove rows with missings?
+#'     If \code{TRUE} (default), rows with any missing values (\code{NA}, \code{NaN}, or \code{Inf})
+#'      on predictor variables (see \code{?\link{get_model_predvars}}) are dropped.
+#'     Information on removed rows is recorded in attributes
+#'      "removed.rows" (indexes) and "removed.rows.nas"
+#'      (list of lists recording predictor variable/feature names with missing values).
 #'
 #' @param threshold a unit-length double vector in (0, 1),
 #'     specifying the (predicted) probability threshold used to classify samples
@@ -222,11 +230,15 @@ classify_tweets_predict <- function(model, x, threshold, .predict.type, .add, .d
 #'      and the default threshold of .5 is always used.
 #'
 #' @return A data frame of predictions.
+#'     Check attribute "removed.rows" for indexes of removed rows
+#'     and "removed.rows.nas" for corresponding missing value information
+#'     if \code{na.rm = TRUE}.
 #'
 #' @export
 classify_tweets <- function(
   x
-  , model = constituent.models
+  , model = ensemble.model
+  , na.rm = TRUE
   , threshold = .5
   , ...
   , .predict.type = "prob"
@@ -241,6 +253,10 @@ classify_tweets <- function(
     # check x input
     , "`x` needs to be a/inherit from data.frame object" = inherits(x, "data.frame")
     , "`x` needs to have at least one row" = nrow(x) > 0
+    # check na.rm input
+    , "`na.rm` must be either TRUE or FALSE." = !is.null(na.rm)
+    , "`na.rm` must be either TRUE or FALSE." = length(na.rm) == 1L
+    , "`na.rm` must be either TRUE or FALSE." = is.logical(na.rm) & !is.na(na.rm)
     # check classification threshold
     , "`threshold` needs to be in (0, 1)." = is.double(threshold)
     , "`threshold` needs to be in (0, 1)." = length(threshold) == 1
@@ -265,6 +281,7 @@ classify_tweets <- function(
 classify_tweets.default <- function(
   x
   , model
+  , na.rm = TRUE
   , threshold = .5
   , ...
   , .predict.type = "prob"
@@ -290,7 +307,8 @@ classify_tweets.default <- function(
 #' @export
 classify_tweets.caretEnsemble <- function(
   x
-  , model
+  , model = ensemble.model
+  , na.rm = TRUE
   , threshold = .5
   , ...
   , .predict.type = "prob"
@@ -310,7 +328,7 @@ classify_tweets.caretEnsemble <- function(
 
   if (.verbose) message("Using pre-trained ensemble classifier")
 
-  classify_tweets_predict(model, x, threshold, .predict.type, .add, .debug, .verbose, ...)
+  classify_tweets_predict(model, x, na.rm, threshold, .predict.type, .add, .debug, .verbose, ...)
 
 }
 
@@ -343,6 +361,7 @@ classify_tweets.caretEnsemble <- function(
 classify_tweets.caretList <- function(
   x
   , model = constituent.models
+  , na.rm = TRUE
   , threshold = .5
   , blend.by = "PR-AUC"
   , .train.ctrl = trainControl(
@@ -377,6 +396,27 @@ classify_tweets.caretList <- function(
     , "`.train.ctrl$summaryFunction` needs to be a function with arguments 'data', 'lev', and 'model' (see ?caret::defaultSummary)" = identical(names(formals(.train.ctrl$summaryFunction)), c("data", "lev", "model"))
   )
 
+  # check predictor variables in `x`
+  predvars <- get_model_predvars(model)
+
+  if (any(!predvars %in% names(x))) {
+    # if in debug mode ...
+    if (.debug){
+      classify_tweets_debug_warning(x, predvars)
+    } else {
+      # else, give suggestive warning message ...
+      warning(
+        paste(
+          "It seems that the data frame you passed to argument `x` is missing some predictor variables."
+          , "To check which predictor variables need to be contained in `x`, call `classify_tweets` again but with `.debug = TRUE`."
+        )
+        , call. = FALSE
+      )
+    }
+
+    stop("Cannot predict outcome class for samples contained in `x`. Required predictor variables missing.", call. = FALSE)
+  }
+
   # test trainControl summary function
   sumfun_test <- validate_train_ctrl_sum_fun(.train.ctrl$summaryFunction, model[[1]]$levels, blend.by)
   if (!sumfun_test$result) stop(sumfun_test$message, call. = FALSE)
@@ -408,7 +448,7 @@ classify_tweets.caretList <- function(
   if (inherits(ensemble, "error"))
     stop("Could not create ensemble classifier: Error message reads ", sQuote(ensemble$message), call. = FALSE)
 
-  classify_tweets_predict(ensemble, x, threshold, .predict.type, .add, .debug, .verbose, ...)
+  classify_tweets_predict(ensemble, x, na.rm, threshold, .predict.type, .add, .debug, .verbose, ...)
 
 }
 

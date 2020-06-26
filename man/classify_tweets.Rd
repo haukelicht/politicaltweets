@@ -9,7 +9,8 @@
 \usage{
 classify_tweets(
   x,
-  model = constituent.models,
+  model = ensemble.model,
+  na.rm = TRUE,
   threshold = 0.5,
   ...,
   .predict.type = "prob",
@@ -21,6 +22,7 @@ classify_tweets(
 \method{classify_tweets}{default}(
   x,
   model,
+  na.rm = TRUE,
   threshold = 0.5,
   ...,
   .predict.type = "prob",
@@ -31,7 +33,8 @@ classify_tweets(
 
 \method{classify_tweets}{caretEnsemble}(
   x,
-  model,
+  model = ensemble.model,
+  na.rm = TRUE,
   threshold = 0.5,
   ...,
   .predict.type = "prob",
@@ -43,6 +46,7 @@ classify_tweets(
 \method{classify_tweets}{caretList}(
   x,
   model = constituent.models,
+  na.rm = TRUE,
   threshold = 0.5,
   blend.by = "PR-AUC",
   .train.ctrl = trainControl(method = "repeatedcv", number = 10, repeats = 10, search =
@@ -66,8 +70,15 @@ classify_tweets(
    \item{a 'caretList' object, (i.e., a list of \code{\link[caret]{train}}
  objects obtained with \code{\link[caretEnsemble]{caretList}}).}
 }
-Defaults to the 'caretList' object \code{\link{constituent.models}}.
+Defaults to the 'caretEnsemble' object \code{\link{ensemble.model}}.
 See section "Using \code{classify_tweets} when \code{model} is a 'caretList' object" for details.}
+
+\item{na.rm}{logical. List-wise remove rows with missings?
+If \code{TRUE} (default), rows with any missing values (\code{NA}, \code{NaN}, or \code{Inf})
+ on predictor variables (see \code{?\link{get_model_predvars}}) are dropped.
+Information on removed rows is recorded in attributes
+ "removed.rows" (indexes) and "removed.rows.nas"
+ (list of lists recording predictor variable/feature names with missing values).}
 
 \item{threshold}{a unit-length double vector in (0, 1),
 specifying the (predicted) probability threshold used to classify samples
@@ -105,6 +116,9 @@ Default is "cache" in package directory in file system (see \code{getOption("pol
 }
 \value{
 A data frame of predictions.
+    Check attribute "removed.rows" for indexes of removed rows
+    and "removed.rows.nas" for corresponding missing value information
+    if \code{na.rm = TRUE}.
 }
 \description{
 Function takes a data frame of tweet features as input,

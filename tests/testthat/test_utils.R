@@ -20,7 +20,7 @@ test_that("validate_column_mapping()'s return structure and values are correct",
   test$colname <- character()
   res <- validate_column_mapping(test)
   expect_false(res$result)
-  expect_match(res$message, "^column types mismatching \\(expected\\): ‘accepted_types’ \\(list\\)$")
+  expect_match(res$message, "^column types mismatching \\(expected\\): 'accepted_types' \\(list\\)$")
 
   test$accepted_types <- list()
   res <- validate_column_mapping(test)
@@ -87,3 +87,57 @@ test_that("check_column_types()'s return structure and values are correct", {
   res <- check_column_types(.x = tweets.df.prototype, .map = required.tweets.df.cols)
   expect_true(all(res))
 })
+
+test_that("get_model_predvars()", {
+  res <- get_model_predvars(ensemble.model)
+  expect_equal(res, training.features$colname)
+
+  res <- get_model_predvars(constituent.models)
+  expect_equal(res, training.features$colname)
+
+  res <- get_model_predvars(constituent.models$glmnet)
+  expect_equal(res, training.features$colname)
+
+  expect_error(get_model_predvars(list()))
+})
+
+
+test_that("detect_missings()", {
+
+  test <- data.frame()
+  res <- detect_missings(test)
+  expect_type(res, "list")
+  expect_length(res, 2)
+  expect_named(res, c("removed", "rows_na_map"))
+  expect_null(res$removed)
+  expect_null(res$rows_na_map)
+
+  test <- data.frame(x = 1, na = NA, nan = NaN, inf = Inf)
+  wrn <- capture_warning(detect_missings(test))
+  expect_match(wrn$message, "1 row of `x` is incomplete")
+  res <- suppressWarnings(detect_missings(test))
+  expect_type(res, "list")
+  expect_length(res, 2)
+  expect_named(res, c("removed", "rows_na_map"))
+  expect_type(res$removed, "integer")
+  expect_length(res$removed, 1)
+  expect_type(res$rows_na_map, "list")
+  expect_length(res$removed, 1)
+  expect_named(res$rows_na_map, "1")
+  expect_named(res$rows_na_map[[1]], c("na", "nan", "inf"))
+  expect_identical(res$rows_na_map[[1]], list("na" = "na", "nan" = "nan", "inf" = "inf"))
+
+  test$inf <- NULL
+  res <- suppressWarnings(detect_missings(test))
+  expect_identical(res$rows_na_map[[1]], list("na" = "na", "nan" = "nan", "inf" = character()))
+
+  test$nan <- NULL
+  res <- suppressWarnings(detect_missings(test))
+  expect_identical(res$rows_na_map[[1]], list("na" = "na", "nan" = character(), "inf" = character()))
+
+  test$na <- "foo"
+  res <- suppressWarnings(detect_missings(test))
+  expect_null(res$removed)
+  expect_null(res$rows_na_map)
+})
+
