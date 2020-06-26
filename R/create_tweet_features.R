@@ -154,6 +154,10 @@ compute_tweet_features <- function(
       , tweet_type = factor(case_when(is_reply~"reply", is_quote~"quote", TRUE~"tweet"))
       , nchar_limit = factor(date > ymd("2017-11-07"), c(F, T), c("140", "280"))
     ) %>%
+    # replace non-sensical NAs
+    mutate_at(vars(ends_with("_count")), replace_na, 0L) %>%
+    # replace non-sensical NaNs
+    mutate_at(vars(dplyr::matches("^char_ratio.+_no_urls$")), ~ifelse(is.nan(.), .0, .)) %>%
     # keep the following columns
     select(
       # -- input columns -- #
@@ -239,7 +243,7 @@ compute_tweet_features <- function(
 #' @param .req.columns.mapping a two-column \code{data.frame} mapping column names to
 #'     (character vectors specifying) expected column classes.
 #'     The first column must be named \code{colname} and have type character.
-#'     The second column must be a list-column of character vectors and named \code{accepted_classes}.
+#'     The second column must be a list-column of character vectors and named \code{accepted_types}.
 #'     (see \code{?\link{required.tweets.df.cols}}).
 #'
 #' @param ... Additional arguments passed to \code{\link{compute_tweet_features}}.
@@ -278,7 +282,7 @@ create_tweet_features <- function(
   if (length(idxs_ <- which(!.req.columns.mapping$colname %in% names(x))) > 0)
     stop("The following columns are required but missing from `x`: ", col_msg(idxs_, .req.columns.mapping), call. = FALSE)
 
-  col_class_check <- tryCatch(check_column_class(x, .req.columns.mapping), error = function(err) err)
+  col_class_check <- tryCatch(check_column_types(x, .req.columns.mapping), error = function(err) err)
 
   if (inherits(col_class_check, "error"))
     stop("Error raised when trying to check required columns' classes. Error message reads ", col_class_check$message, call. = FALSE)

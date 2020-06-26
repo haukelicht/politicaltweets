@@ -29,7 +29,7 @@ test_that("create_tweet_features() fails with erreneous input", {
   expect_error(
     politicaltweets:::create_tweet_features(
       x = test
-      , .req.columns.mapping = tibble::tibble(colname = "status_id", accepted_classes = list("logical"))
+      , .req.columns.mapping = tibble::tibble(colname = "status_id", accepted_types = list("logical"))
     )
     , "wrong classes"
   )

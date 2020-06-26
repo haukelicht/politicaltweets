@@ -18,7 +18,7 @@
 #' @format A \code{\link[tibble]{tibble}} with columns
 #'      \describe{
 #'        \item{colname}{a character vector, specifying required column names}
-#'        \item{accepted_classes}{a list column of character vectors, each element mapping the accepted classed to \code{colname}}
+#'        \item{accepted_types}{a list column of character vectors, each element mapping the accepted type(s) to \code{colname} (see \code{?typeof})}
 #'      }
 "required.tweets.df.cols"
 

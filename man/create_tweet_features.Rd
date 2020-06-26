@@ -19,7 +19,7 @@ For an example see \code{?\link{tweets.df.prototype}}.}
 \item{.req.columns.mapping}{a two-column \code{data.frame} mapping column names to
 (character vectors specifying) expected column classes.
 The first column must be named \code{colname} and have type character.
-The second column must be a list-column of character vectors and named \code{accepted_classes}.
+The second column must be a list-column of character vectors and named \code{accepted_types}.
 (see \code{?\link{required.tweets.df.cols}}).}
 
 \item{...}{Additional arguments passed to \code{\link{compute_tweet_features}}.}

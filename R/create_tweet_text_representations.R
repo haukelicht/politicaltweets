@@ -18,7 +18,7 @@
 #' @param .req.columns.mapping a two-column \code{data.frame} mapping column names to
 #'     (character vectors specifying) expected column classes.
 #'     The first column must be named \code{colname} and have type character.
-#'     The second column must be a list-column of character vectors and named \code{accepted_classes}.
+#'     The second column must be a list-column of character vectors and named \code{accepted_types}.
 #'     Default maps column name "status_id" to classes "character" or "integer",
 #'      and "text" to "lang" to "character".
 #' @param ... Additional arguments passed to \code{\link[laserize]{laserize}}
@@ -102,7 +102,7 @@ create_tweet_text_representations <- function(
   , .compute.pcs = TRUE
   , .compute.ics = TRUE
   , .req.columns.mapping = tibble::tribble(
-       ~colname, ~accepted_classes,
+       ~colname, ~accepted_types,
     "status_id", c("character", "integer"),
          "text", c("character"),
          "lang", c("character")
@@ -134,7 +134,7 @@ create_tweet_text_representations <- function(
   if (length(idxs_ <- which(!.req.columns.mapping$colname %in% names(x))) > 0)
     stop("The following columns are required but missing from `x`: ", col_msg(idxs_), call. = FALSE)
 
-  col_class_check <- tryCatch(check_column_class(x, .req.columns.mapping), error = function(err) err)
+  col_class_check <- tryCatch(check_column_types(x, .req.columns.mapping), error = function(err) err)
 
   if (inherits(col_class_check, "error"))
     stop("Error raised when trying to check required columns' classes. Error message reads ", col_class_check$message, call. = FALSE)

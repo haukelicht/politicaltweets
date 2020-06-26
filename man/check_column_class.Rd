@@ -12,14 +12,14 @@ check_column_class(.x, .map)
 \item{.map}{a two-column \code{data.frame} mapping column names to
 (character vectors specifying) expected column classes.
 The first column must be named \code{colname} and have type character.
-The second column must be a list-column of character vectors and named \code{accepted_classes}.
+The second column must be a list-column of character vectors and named \code{accepted_types}.
 (see \code{?\link{required.tweets.df.cols}}).}
 }
 \value{
 a named logical vector with length equal to \code{length(.x)}.
     Each element is corresponds to a column of \code{.x} (names correspond).
     An element is \code{TRUE}, if the class of the column in \code{.x} matches
-     any of the classes specified in \code{.map[.map$colname == <col>, "accepted_classes"]}.
+     any of the classes specified in \code{.map[.map$colname == <col>, "accepted_types"]}.
     It is \code{NA}, if a column of \code{.x} is not mapped in \code{.map}
     Otherwise, it is \code{FALSE}.
 }

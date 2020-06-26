@@ -9,7 +9,7 @@ create_tweet_text_representations(
   .keep.embeddings = FALSE,
   .compute.pcs = TRUE,
   .compute.ics = TRUE,
-  .req.columns.mapping = tibble::tribble(~colname, ~accepted_classes, "status_id",
+  .req.columns.mapping = tibble::tribble(~colname, ~accepted_types, "status_id",
     c("character", "integer"), "text", c("character"), "lang", c("character")),
   ...
 )
@@ -34,7 +34,7 @@ Default is \code{TRUE}.}
 \item{.req.columns.mapping}{a two-column \code{data.frame} mapping column names to
 (character vectors specifying) expected column classes.
 The first column must be named \code{colname} and have type character.
-The second column must be a list-column of character vectors and named \code{accepted_classes}.
+The second column must be a list-column of character vectors and named \code{accepted_types}.
 Default maps column name "status_id" to classes "character" or "integer",
  and "text" to "lang" to "character".}
 

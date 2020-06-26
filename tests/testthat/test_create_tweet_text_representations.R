@@ -18,7 +18,7 @@ test_that("create_tweet_text_representations() fails with erreneous input", {
   expect_error(
     create_tweet_text_representations(
       x = test
-      , .req.columns.mapping = tibble::tibble(colname = "status_id", accepted_classes = list("logical"))
+      , .req.columns.mapping = tibble::tibble(colname = "status_id", accepted_types = list("logical"))
     )
     , "wrong classes"
   )

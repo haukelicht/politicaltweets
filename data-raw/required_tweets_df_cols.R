@@ -1,7 +1,7 @@
 required.tweets.df.cols <- tibble::tribble(
-  ~colname, ~accepted_classes,
+  ~colname, ~accepted_types,
   "status_id",c("character", "integer"),
-  "created_at",c("POSIXt", "integer", "character"),
+  "created_at",c("POSIXt", "double", "integer", "character"),
   "text","character",
   "display_text_width",c("double","integer"),
   "lang","character",
