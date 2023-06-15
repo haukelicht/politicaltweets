@@ -6,7 +6,9 @@
 .RData
 
 # User-specific files
+.Rprofile
 .Ruserdata
+politicaltweets.Rproj.old
 
 # Example code in package build process
 *-Ex.R
@@ -19,6 +21,9 @@
 
 # RStudio files
 .Rproj.user/*
+
+# renv folder
+renv/
 
 # produced vignettes
 vignettes/*.html
